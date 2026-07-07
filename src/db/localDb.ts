@@ -265,7 +265,30 @@ export class LocalDatabase {
   }
 
   static getChatRooms(): ChatRoom[] {
-    return getStored<ChatRoom[]>('chat_rooms', []);
+    const list = getStored<ChatRoom[]>('chat_rooms', []);
+    const aiRoomId = 'room-ai-advisor';
+    const hasAiRoom = list.some(r => r.id === aiRoomId);
+    if (!hasAiRoom) {
+      const defaultAiRoom: ChatRoom = {
+        id: aiRoomId,
+        buyerId: 'usr-buyer-1',
+        buyerName: 'ياسين (Yassine)',
+        storeId: 'store-ai-advisor',
+        storeName: 'المستشار الذكي (AI Shopping Advisor)',
+        messages: [
+          {
+            id: 'msg-ai-init',
+            senderId: 'store-ai-advisor',
+            content: 'أهلاً بك في فضاء المستشار الذكي لـ may-store! 🌟 أنا هنا لمساعدتك في اكتشاف أفخم المنتجات التقليدية المغربية (كالقفطان المغربي، الجلابة، والبلغة)، شرح ميزات الجودة لمستحضرات التجميل الطبيعية كزيت الأركان النقي، وتقديم المساعدة للتسوق والدفع بأمان عند الاستلام. كيف يمكنني مساعدتك اليوم؟',
+            createdAt: new Date().toISOString()
+          }
+        ],
+        updatedAt: new Date().toISOString()
+      };
+      list.unshift(defaultAiRoom);
+      setStored('chat_rooms', list);
+    }
+    return list;
   }
 
   static saveChatRooms(rooms: ChatRoom[]): void {

@@ -2,7 +2,7 @@ export type Language = 'ar' | 'fr';
 
 export const TRANSLATIONS = {
   ar: {
-    appName: 'ماركت بلاص المغرب',
+    appName: 'may-store',
     appSlogan: 'منصة التجارة الإلكترونية المغربية المتكاملة',
     createStoreSlogan: 'أنشئ متجرك الإلكتروني الاحترافي بـ 9 دراهم مغربية فقط وابدأ البيع اليوم!',
     setupFeeNote: 'رسوم إنشاء المتجر لمرة واحدة: 9 دراهم',
@@ -151,7 +151,7 @@ export const TRANSLATIONS = {
     noConversations: 'لا توجد محادثات نشطة حالياً. يمكنك مراسلة أي بائع مباشرة من صفحة منتجاته.',
     
     // Admin Panel
-    adminTitle: 'لوحة الإدارة الشاملة (Marketplace Morocco)',
+    adminTitle: 'لوحة الإدارة الشاملة (may-store)',
     manageUsers: 'إدارة الأعضاء',
     manageStores: 'إدارة المتاجر المغربية',
     manageProducts: 'إدارة ومراجعة المنتجات',
@@ -209,7 +209,7 @@ export const TRANSLATIONS = {
     dir: 'rtl'
   },
   fr: {
-    appName: 'Marketplace Morocco',
+    appName: 'may-store',
     appSlogan: 'La Plateforme E-commerce Marocaine Complète',
     createStoreSlogan: 'Créez votre boutique professionnelle pour seulement 9 DH et commencez à vendre dès aujourd’hui !',
     setupFeeNote: 'Frais de création de boutique (unique) : 9 MAD',
@@ -358,7 +358,7 @@ export const TRANSLATIONS = {
     noConversations: 'Aucune discussion active. Vous pouvez contacter un vendeur directement depuis la page de ses produits.',
     
     // Admin Panel
-    adminTitle: 'Administration Globale (Marketplace Morocco)',
+    adminTitle: 'Administration Globale (may-store)',
     manageUsers: 'Utilisateurs',
     manageStores: 'Boutiques',
     manageProducts: 'Produits',

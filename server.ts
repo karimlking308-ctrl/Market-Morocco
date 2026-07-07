@@ -57,7 +57,7 @@ let appSettings = {
 };
 
 // Simple server side logs or state
-console.log('Marketplace Morocco server initializing...');
+console.log('may-store server initializing...');
 
 // API 1: Moderation API using server-side Gemini
 app.post('/api/moderate-product', async (req, res) => {
@@ -75,7 +75,7 @@ app.post('/api/moderate-product', async (req, res) => {
 
     console.log(`Moderating product: "${name}" via Gemini API...`);
 
-    const prompt = `You are a content moderator for Marketplace Morocco (an e-commerce platform in Morocco).
+    const prompt = `You are a content moderator for may-store (an e-commerce platform in Morocco).
     Analyze this product submission:
     - Product Name: "${name}"
     - Category: "${category}"
@@ -159,6 +159,99 @@ app.post('/api/generate-description', async (req, res) => {
   }
 });
 
+// API 2.1: Morocco AI Buyer Advisor
+app.post('/api/ai-advisor', async (req, res) => {
+  try {
+    const { message, history, products } = req.body;
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required.' });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.json({
+        reply: "مرحباً بك! يرجى تهيئة مفتاح GEMINI_API_KEY في الإعدادات لتفعيل المستشار الذكي بكامل طاقته. حالياً، أنا في الوضع التجريبي التلقائي."
+      });
+    }
+
+    console.log(`AI Advisor processing user query...`);
+
+    const formattedProducts = products && Array.isArray(products)
+      ? products.slice(0, 15).map((p: any) => `- [${p.name}] (${p.price} DH) - فئة: ${p.category}. وصف: ${p.description}`).join('\n')
+      : '';
+
+    const systemInstruction = `You are "Morocco AI Advisor" (مستشار المشتري الذكي), a warm, helpful, and highly knowledgeable e-commerce shopping assistant for "may-store" (منصة ماي ستور).
+    Your goals:
+    1. Guide users to find traditional crafts, local Moroccan cosmetic/wellness products (argan oil, amlou, saffron, hammam herbs), traditional garments (caftans, djellabas), and other items.
+    2. Suggest relevant items based on the user's request. Recommend real products available on our platform from the following catalog:
+    ${formattedProducts}
+    3. Always answer in the language the user speaks to you (Moroccan Arabic/Darija, Modern Standard Arabic, or French).
+    4. Maintain a warm, welcoming Moroccan hospitality tone (e.g., "أهلاً وسهلاً بك", "مرحباً بك لالة / سيدي", "على الرحب والسعة").
+    5. Keep your responses friendly, concise, and beautifully structured.
+    6. Ensure you emphasize that payment is safely done via Cash on Delivery (الدفع عند الاستلام) across all cities in Morocco.`;
+
+    const chatHistory = history && Array.isArray(history) ? history.map((h: any) => ({
+      role: h.senderId === 'store-ai-advisor' ? 'model' : 'user',
+      parts: [{ text: h.content }]
+    })) : [];
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents: [
+        ...chatHistory.slice(-8),
+        { role: 'user', parts: [{ text: message }] }
+      ],
+      config: {
+        systemInstruction,
+        temperature: 0.7
+      }
+    });
+
+    res.json({ reply: response.text });
+  } catch (error: any) {
+    console.error('Gemini Advisor Error:', error);
+    res.status(500).json({ error: 'Failed to generate advisor response.' });
+  }
+});
+
+// API 2.2: AI Seller Reply Suggester
+app.post('/api/ai-reply-suggester', async (req, res) => {
+  try {
+    const { history } = req.body;
+    if (!history || !Array.isArray(history) || history.length === 0) {
+      return res.status(400).json({ error: 'History is required.' });
+    }
+
+    if (!process.env.GEMINI_API_KEY) {
+      return res.json({
+        suggestion: "شكراً لرسالتكم! سنقوم بالرد وتأكيد طلبكم في أقرب وقت."
+      });
+    }
+
+    console.log(`Generating AI reply suggestion for seller...`);
+
+    const conversationText = history.map((h: any) => `${h.senderId === 'store-ai-advisor' ? 'AI Advisor' : h.senderId}: ${h.content}`).join('\n');
+
+    const prompt = `You are a supportive assistant helping a merchant on "may-store".
+    Review the following chat conversation history with a buyer:
+    ${conversationText}
+
+    Suggest a helpful, highly polite, and professional merchant reply in the same language as the buyer (Moroccan Arabic/Darija or French).
+    Keep it natural, concise (under 2 sentences), and encouraging to help complete the sale or reassure the buyer about cash on delivery.
+    
+    Output ONLY the reply text directly. Do not wrap it in quotes or add metadata.`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents: prompt
+    });
+
+    res.json({ suggestion: response.text ? response.text.trim() : '' });
+  } catch (error: any) {
+    console.error('Gemini Reply Suggester Error:', error);
+    res.status(500).json({ error: 'Failed to generate reply suggestion.' });
+  }
+});
+
 // API 3: Get Platform Settings
 app.get('/api/settings', (req, res) => {
   res.json(appSettings);
@@ -191,7 +284,7 @@ async function startServer() {
   }
 
   app.listen(PORT, '0.0.0.0', () => {
-    console.log(`[Marketplace Morocco Server] Listening on http://0.0.0.0:${PORT}`);
+    console.log(`[may-store Server] Listening on http://0.0.0.0:${PORT}`);
   });
 }
 

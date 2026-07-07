@@ -1,5 +1,5 @@
 {
-  "name": "Marketplace Morocco",
+  "name": "may-store",
   "description": "منصة تجارة إلكترونية مغربية متكاملة تتيح للمستخدمين إنشاء متاجر إلكترونية احترافية وبيع المنتجات مع نظام عمولات متطور وإدارة كاملة.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

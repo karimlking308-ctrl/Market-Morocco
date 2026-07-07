@@ -1,5 +1,5 @@
 /**
- * Marketplace Morocco - Shared Type Definitions
+ * may-store - Shared Type Definitions
  */
 
 export type UserRole = 'admin' | 'seller' | 'buyer' | 'visitor';

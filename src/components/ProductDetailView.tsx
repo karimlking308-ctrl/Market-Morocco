@@ -43,10 +43,37 @@ export default function ProductDetailView({
   const [copiedLink, setCopiedLink] = useState(false);
   const [alertAdded, setAlertAdded] = useState(false);
 
+  // Interactive Rating States
+  const [starHover, setStarHover] = useState<number | null>(null);
+  const [formStarHover, setFormStarHover] = useState<number | null>(null);
+
   // Review Form state
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
   const [reviewPosted, setReviewPosted] = useState(false);
+
+  const handleTopStarClick = (ratingValue: number) => {
+    setNewRating(ratingValue);
+    const element = document.getElementById('review-form-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const textarea = element.querySelector('textarea');
+      if (textarea) {
+        textarea.focus();
+      }
+    }
+  };
+
+  const getRatingLabel = (val: number) => {
+    const labels: Record<number, { ar: string; fr: string }> = {
+      1: { ar: 'ضعيف جداً (Très mauvais) 😞', fr: 'Très mauvais 😞' },
+      2: { ar: 'ضعيف (Mauvais) 🙁', fr: 'Mauvais 🙁' },
+      3: { ar: 'مقبول (Moyen) 😐', fr: 'Moyen 😐' },
+      4: { ar: 'جيد جداً (Très bien) 🙂', fr: 'Très bien 🙂' },
+      5: { ar: 'ممتاز (Excellent) 😍', fr: 'Excellent 😍' },
+    };
+    return labels[val] ? (language === 'ar' ? labels[val].ar : labels[val].fr) : '';
+  };
 
   // Filter similar products
   const similarProducts = useMemo(() => {
@@ -165,19 +192,38 @@ export default function ProductDetailView({
             </h1>
             
             {/* Rating */}
-            <div className="flex items-center gap-2 text-xs text-amber-500 font-extrabold">
-              <div className="flex items-center">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-3.5 w-3.5 ${
-                      i < Math.floor(product.rating) ? 'fill-amber-500 text-amber-500' : 'text-gray-200 dark:text-gray-700'
-                    }`}
-                  />
-                ))}
+            <div className="flex flex-wrap items-center gap-2 text-xs text-amber-500 font-extrabold" id="top-rating-stars-container">
+              <div 
+                className="flex items-center gap-0.5 bg-amber-500/5 dark:bg-amber-500/10 px-2.5 py-1.5 rounded-xl border border-amber-500/10"
+                title={language === 'ar' ? 'اضغط لتقييم المنتج مباشرة' : 'Cliquez pour évaluer ce produit'}
+              >
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const isFilled = starHover !== null ? star <= starHover : star <= Math.floor(product.rating);
+                  return (
+                    <button
+                      key={star}
+                      type="button"
+                      onMouseEnter={() => setStarHover(star)}
+                      onMouseLeave={() => setStarHover(null)}
+                      onClick={() => handleTopStarClick(star)}
+                      className="p-0.5 transition-transform duration-150 hover:scale-125 cursor-pointer focus:outline-none"
+                    >
+                      <Star
+                        className={`h-4 w-4 transition-colors ${
+                          isFilled 
+                            ? 'fill-amber-500 text-amber-500' 
+                            : 'text-gray-200 dark:text-gray-700'
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
               </div>
-              <span className="text-slate-700 dark:text-gray-300">
-                {product.rating} ({product.ratingCount} {language === 'ar' ? 'تقييم' : 'avis'})
+              <span className="text-slate-700 dark:text-gray-300 bg-gray-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-gray-100 dark:border-gray-800">
+                {product.rating} ★ ({product.ratingCount} {language === 'ar' ? 'تقييم' : 'avis'})
+              </span>
+              <span className="text-[10px] text-slate-400 dark:text-gray-400 font-bold ml-1 animate-pulse hidden sm:inline">
+                {language === 'ar' ? '← اضغط لتقييم المنتج فورياً!' : '← Évaluez instantanément !'}
               </span>
             </div>
           </div>
@@ -400,22 +446,38 @@ export default function ProductDetailView({
         )}
 
         {/* Post a Review Form */}
-        <form onSubmit={handleReviewSubmit} className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+        <form onSubmit={handleReviewSubmit} id="review-form-section" className="space-y-4 pt-4 border-t border-gray-100 dark:border-gray-800 scroll-mt-24">
           <h4 className="text-xs font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">{t.writeReview}</h4>
           
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-slate-500">{t.ratingScore}</span>
-            <div className="flex gap-1">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => setNewRating(star)}
-                  className="p-0.5 hover:scale-110 transition-transform"
-                >
-                  <Star className={`h-5 w-5 ${star <= newRating ? 'fill-amber-500 text-amber-500' : 'text-gray-200 dark:text-gray-700'}`} />
-                </button>
-              ))}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-slate-50 dark:bg-slate-850/60 p-4 rounded-2xl border border-gray-100/85 dark:border-gray-800/85">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400">{t.ratingScore}</span>
+            <div className="flex items-center gap-4">
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const isActive = formStarHover !== null ? star <= formStarHover : star <= newRating;
+                  return (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setNewRating(star)}
+                      onMouseEnter={() => setFormStarHover(star)}
+                      onMouseLeave={() => setFormStarHover(null)}
+                      className="p-1 hover:scale-125 transition-all duration-150 cursor-pointer focus:outline-none"
+                    >
+                      <Star
+                        className={`h-6 w-6 transition-colors ${
+                          isActive 
+                            ? 'fill-amber-500 text-amber-500 drop-shadow-[0_0_4px_rgba(245,158,11,0.25)]' 
+                            : 'text-gray-200 dark:text-gray-700'
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+              <span className="text-xs font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/5 px-3 py-1.5 rounded-xl border border-amber-500/10 min-w-[120px] text-center">
+                {getRatingLabel(formStarHover !== null ? formStarHover : newRating)}
+              </span>
             </div>
           </div>
 

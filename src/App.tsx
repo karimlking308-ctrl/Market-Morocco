@@ -346,6 +346,35 @@ export default function App() {
   const handleSendMessage = (roomId: string, content: string) => {
     LocalDatabase.addChatMessage(roomId, currentUserId, content);
     syncWithDb();
+
+    // Intercept messages sent to the AI Shopping Advisor
+    if (roomId === 'room-ai-advisor') {
+      const currentRooms = LocalDatabase.getChatRooms();
+      const aiRoom = currentRooms.find(r => r.id === roomId);
+      const history = aiRoom ? aiRoom.messages : [];
+
+      fetch('/api/ai-advisor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: content,
+          history: history,
+          products: products
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.reply) {
+          LocalDatabase.addChatMessage(roomId, 'store-ai-advisor', data.reply);
+          syncWithDb();
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching AI Advisor response:', err);
+        LocalDatabase.addChatMessage(roomId, 'store-ai-advisor', 'عذراً، واجهنا صعوبة في الاتصال بالمساعد الذكي حالياً. يرجى مراجعة اتصالك ومحاولة المحادثة مجدداً.');
+        syncWithDb();
+      });
+    }
   };
 
   // Admin override tools
@@ -403,7 +432,7 @@ export default function App() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-slate-950">
         <div className="text-center space-y-4">
           <div className="w-10 h-10 border-4 border-morocco-red border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs font-bold text-gray-400">Loading Marketplace Morocco...</p>
+          <p className="text-xs font-bold text-gray-400">Loading may-store...</p>
         </div>
       </div>
     );
@@ -614,7 +643,7 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="space-y-3">
             <h4 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5 font-display tracking-tight uppercase">
-              👑 {language === 'ar' ? 'منصة ماركت بليس المغرب' : 'Marketplace Morocco'}
+              👑 {language === 'ar' ? 'may-store' : 'may-store'}
             </h4>
             <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
               {language === 'ar' ? 'المنصة الوطنية الأولى لتأسيس وإطلاق المتاجر الإلكترونية الاحترافية برأس مال 9 دراهم فقط.' : 'La plateforme nationale pour créer votre propre boutique en ligne à 9 DH seulement.'}
@@ -638,7 +667,7 @@ export default function App() {
           <div className="space-y-3">
             <h4 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight uppercase">{language === 'ar' ? 'حقوق ملكية' : 'Droits d’auteur'}</h4>
             <p className="text-slate-500 dark:text-slate-400">
-              &copy; {new Date().getFullYear()} Marketplace Morocco. {language === 'ar' ? 'جميع الحقوق محفوظة.' : 'Tous droits réservés.'}
+              &copy; {new Date().getFullYear()} may-store. {language === 'ar' ? 'جميع الحقوق محفوظة.' : 'Tous droits réservés.'}
             </p>
             <div className="text-[10px] bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 p-2.5 rounded-xl border border-slate-200/50 dark:border-slate-800/80 inline-block">
               🇲🇦 {language === 'ar' ? 'صنع بكل فخر بالمملكة المغربية' : 'Fait fièrement au Royaume du Maroc'}

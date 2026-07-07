@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Send, User, Store, MessageSquare, Phone, Info } from 'lucide-react';
+import { Send, User, Store, MessageSquare, Phone, Info, Sparkles, Loader2 } from 'lucide-react';
 import { TRANSLATIONS } from '../db/translations';
 import { ChatRoom, ChatMessage, UserProfile, Store as StoreType } from '../types';
 
@@ -26,7 +26,32 @@ export default function ChatView({
   const isRtl = language === 'ar';
 
   const [newMessage, setNewMessage] = useState('');
+  const [suggestingReply, setSuggestingReply] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const handleGetAiSuggestion = async () => {
+    if (!activeRoom || activeRoom.messages.length === 0) return;
+    setSuggestingReply(true);
+    try {
+      const response = await fetch('/api/ai-reply-suggester', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          history: activeRoom.messages
+        })
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.suggestion) {
+          setNewMessage(data.suggestion);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to get AI reply suggestion:', err);
+    } finally {
+      setSuggestingReply(false);
+    }
+  };
 
   const activeRoom = useMemo(() => {
     return rooms.find(r => r.id === activeRoomId) || null;
@@ -142,6 +167,34 @@ export default function ChatView({
               })}
               <div ref={messagesEndRef} />
             </div>
+
+            {/* AI Suggestion Bar */}
+            {activeRoom.id !== 'room-ai-advisor' && (
+              <div className="px-4 py-2 bg-gradient-to-r from-morocco-red/5 via-morocco-green/5 to-transparent border-t border-gray-100 dark:border-gray-850 flex items-center justify-between gap-2" id="ai-suggestion-bar">
+                <span className="text-[10px] text-gray-500 font-bold flex items-center gap-1">
+                  <Sparkles className="h-3.5 w-3.5 text-morocco-red animate-pulse" />
+                  <span>{language === 'ar' ? 'صياغة ردود ذكية بالذكاء الاصطناعي:' : 'Suggestions de réponses intelligentes :'}</span>
+                </span>
+                <button
+                  type="button"
+                  disabled={suggestingReply}
+                  onClick={handleGetAiSuggestion}
+                  className="px-2.5 py-1 text-[9px] font-extrabold bg-white dark:bg-slate-800 hover:bg-gray-50 border border-gray-200 dark:border-gray-750 text-slate-800 dark:text-white rounded-lg shadow-xs transition-all flex items-center gap-1 hover:border-morocco-red/40 cursor-pointer"
+                >
+                  {suggestingReply ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin text-morocco-red" />
+                      <span>{language === 'ar' ? 'جاري الصياغة...' : 'Rédaction...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3 w-3 text-morocco-red" />
+                      <span>{language === 'ar' ? 'صياغة رد ذكي' : 'Suggérer une réponse IA'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
 
             {/* Message input sender */}
             <form onSubmit={handleSend} className="p-4 border-t border-gray-100 dark:border-gray-850 flex gap-2">
