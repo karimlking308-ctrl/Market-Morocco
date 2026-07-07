@@ -17,6 +17,7 @@ interface HomeViewProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   onAddToCart: (product: Product) => void;
+  onCreateStore?: () => void;
 }
 
 export default function HomeView({
@@ -31,7 +32,8 @@ export default function HomeView({
   wishlist,
   searchQuery,
   setSearchQuery,
-  onAddToCart
+  onAddToCart,
+  onCreateStore
 }: HomeViewProps) {
   const t = TRANSLATIONS[language];
   const isRtl = language === 'ar';
@@ -152,6 +154,30 @@ export default function HomeView({
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Launch Store Promotion Banner CTA */}
+      {onCreateStore && (
+        <div className="bg-slate-900 text-white rounded-2xl border border-slate-800 p-6 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
+          <div className="absolute -right-20 -top-20 w-44 h-44 bg-amber-500/15 rounded-full blur-2xl pointer-events-none"></div>
+          
+          <div className="space-y-1.5 text-right">
+            <h4 className="text-base font-black flex items-center gap-2">
+              🚀 {language === 'ar' ? 'أطلق متجرك الإلكتروني الاحترافي بـ 9 دراهم فقط!' : 'Lancez votre e-commerce pour 9 DH seulement !'}
+            </h4>
+            <p className="text-xs text-gray-400 max-w-2xl leading-relaxed">
+              {language === 'ar' 
+                ? 'انضم إلى مئات الحرفيين والتجار المغاربة وعرض منتجاتك على ملايين الزبائن بضمان الدفع عند الاستلام وبوابة SMS فورية!'
+                : 'Rejoignez des centaines d\'artisans et commerçants marocains. Vendez à des millions d\'acheteurs !'}
+            </p>
+          </div>
+          <button
+            onClick={onCreateStore}
+            className="shrink-0 bg-white hover:bg-gray-100 text-slate-950 font-black text-xs px-6 py-3 rounded-xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+          >
+            <span>✨ {language === 'ar' ? 'تأسيس متجر الآن' : 'Créer ma boutique'}</span>
+          </button>
         </div>
       )}
 

@@ -26,10 +26,10 @@
   --color-white: #faf9f5;
   
   /* Enforce the off-white unified color system in dark states to guarantee a single uniform design */
-  --color-slate-950: #f2f1eb;
-  --color-slate-900: #faf9f5;
-  --color-slate-850: #eae8df;
-  --color-slate-800: #dbd9cd;
+  --color-slate-950: #0c0d0b;
+  --color-slate-900: #1a1b19;
+  --color-slate-850: #222321;
+  --color-slate-800: #2b2d2b;
   --color-slate-700: #4a4d4a;
   
   /* Core brand accents - sophisticated slate and dark graphite */
@@ -49,6 +49,6 @@
 
 @layer base {
   body {
-    @apply font-sans antialiased text-slate-900 bg-slate-50 dark:bg-slate-950 dark:text-slate-100;
+    @apply font-sans antialiased text-slate-900 bg-slate-50 dark:bg-slate-50 dark:text-slate-900;
   }
 }

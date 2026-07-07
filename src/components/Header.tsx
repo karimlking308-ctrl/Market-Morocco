@@ -122,6 +122,17 @@ export default function Header({
           {/* Nav Controls */}
           <div className="flex items-center gap-2 sm:gap-4">
             
+            {currentUser && currentUser.role === 'buyer' && !currentUser.storeId && (
+              <button
+                onClick={() => setActiveView('create-store')}
+                className="hidden md:flex items-center gap-1.5 px-3 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-slate-900 font-extrabold rounded-lg text-xs transition-colors shadow-xs cursor-pointer"
+                id="header-create-store-action"
+              >
+                <Store className="h-4 w-4 text-emerald-400 dark:text-emerald-600 animate-pulse" />
+                <span>{language === 'ar' ? 'تأسيس متجر' : 'Créer Boutique'}</span>
+              </button>
+            )}
+
             {/* Language Toggle */}
             <button
               onClick={() => setLanguage(language === 'ar' ? 'fr' : 'ar')}

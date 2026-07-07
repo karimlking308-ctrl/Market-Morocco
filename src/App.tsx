@@ -10,6 +10,7 @@ import AdminPanel from './components/AdminPanel';
 import ChatView from './components/ChatView';
 import ComplaintsView from './components/ComplaintsView';
 import BuyerOrderHistory from './components/BuyerOrderHistory';
+import CreateStoreView from './components/CreateStoreView';
 
 import { LocalDatabase } from './db/localDb';
 import { Product, Store, Order, Complaint, Coupon, Ad, AppSettings, UserProfile, ChatRoom, SmsNotification } from './types';
@@ -33,7 +34,7 @@ export default function App() {
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([]);
 
   // Navigation
-  const [currentView, setCurrentView] = useState<'home' | 'product' | 'store' | 'cart' | 'dashboard' | 'admin' | 'chat' | 'complaints' | 'orders'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'product' | 'store' | 'cart' | 'dashboard' | 'admin' | 'chat' | 'complaints' | 'orders' | 'create-store'>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
 
@@ -158,8 +159,9 @@ export default function App() {
 
   // Launch store setup - cost 9 DH
   const handleLaunchStore = (storeName: string, category: string, city: string) => {
+    const newStoreId = `store-${Math.floor(Math.random() * 9000) + 1000}`;
     const newStore: Store = {
-      id: `store-${Math.floor(Math.random() * 9000) + 1000}`,
+      id: newStoreId,
       ownerId: currentUserId,
       name: storeName,
       logo: 'https://images.unsplash.com/photo-1546213290-e1b7610339e5?auto=format&fit=crop&w=120&h=120&q=80',
@@ -178,6 +180,17 @@ export default function App() {
     
     // Add store
     LocalDatabase.addStore(newStore);
+
+    // Also update current user role and storeId in LocalDatabase
+    const allUsers = LocalDatabase.getUsers();
+    const userIdx = allUsers.findIndex(u => u.id === currentUserId);
+    if (userIdx > -1) {
+      allUsers[userIdx].role = 'seller';
+      allUsers[userIdx].storeId = newStoreId;
+      LocalDatabase.saveUsers(allUsers);
+    }
+    setCurrentUserRole('seller');
+
     syncWithDb();
     setCurrentView('dashboard');
   };
@@ -447,6 +460,7 @@ export default function App() {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             onAddToCart={handleAddToCart}
+            onCreateStore={() => setCurrentView('create-store')}
           />
         )}
 
@@ -582,6 +596,15 @@ export default function App() {
             language={language}
             orders={orders.filter(o => o.buyerId === currentProfile.id)}
             onOpenChat={handleOpenChat}
+          />
+        )}
+
+        {currentView === 'create-store' && settings && (
+          <CreateStoreView
+            language={language}
+            settings={settings}
+            onLaunchStore={handleLaunchStore}
+            onBackToHome={() => setCurrentView('home')}
           />
         )}
       </main>
